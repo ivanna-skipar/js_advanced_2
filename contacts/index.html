@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Contacts search</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.0/react.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.0/react-dom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.6.15/browser.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+    <div id='content'></div>
+
+    <script type="text/babel">
+
+        var CONTACTS = [
+            {
+                id: 1,
+                name: 'Darth Vader',
+                phoneNumber: '+250966666666',
+                image: 'img/darth.gif',
+                address: 'Shyroka, 5'
+            }, {
+                id: 2,
+                name: 'Princess Leia',
+                phoneNumber: '+250966344466',
+                image: 'img/leia.gif',
+                address: 'Lychakivska, 98'
+            }, {
+                id: 3,
+                name: 'Luke Skywalker',
+                phoneNumber: '+250976654433',
+                image: 'img/luke.gif',
+                address: 'I.Franka, 106'
+            }, {
+                id: 4,
+                name: 'Chewbacca',
+                phoneNumber: '+250456784935',
+                image: 'img/chewbacca.gif',
+                address: 'Saharova, 58'
+            }
+        ];
+
+        var ContactsList = React.createClass({
+            getInitialState: function() {
+                return {
+                    displayedContacts: CONTACTS,
+                    newContact: ''
+                };
+            },
+
+            handleAdd: function ( e ) {
+                e.preventDefault();
+                let contacts = this.state.displayedContacts;
+                contacts.push( this.state.newContact );
+                this.setState({
+                    displayedContacts: contacts,
+                    newContact: ''
+                } );
+                form.reset()
+            },
+            
+            setNewContact: function ( e ) {
+                let newContact = {
+                    id: this.state.displayedContacts.length++,
+                    name: form.name.value,
+                    phoneNumber: form.phone.value,
+                    address: form.address.value,
+                    image: 'img/chewbacca.gif'
+                }
+
+                this.setState({
+                    newContact: newContact
+                });
+            },
+            handleDelete: function (e) {
+                var key = (e.target.id)*1;  //TODO тут треба переводити в число, бо e.target.id воно спримає як стрічку і не працює. Чому так?
+                var newDisplayed = this.state.displayedContacts.filter(e => e.id !== key);
+                this.setState({
+                   displayedContacts: newDisplayed
+                })
+            },
+            handleEdit: function (e) {
+                let editKey = (e.target.id)*1;
+                var editedContact = this.state.displayedContacts.filter(e => e.id == editKey);
+                form.style.display = 'none';
+                formEdit.style.display = 'block';
+                formEdit.nameEdit.value = editedContact[0].name;
+                formEdit.phoneEdit.value = editedContact[0].phoneNumber;
+                formEdit.addressEdit.value = editedContact[0].address;     
+                formEdit.id.value = editedContact[0].id;   
+                       
+            },
+
+            handleSave: function  (){
+                console.log(formEdit.id.value)
+                let editedContactId = (formEdit.id.value)*1;
+                var editedContact = this.state.displayedContacts.filter(e => e.id == editedContactId);
+                editedContact[0].name = formEdit.nameEdit.value;
+                editedContact[0].phoneNumber = formEdit.phoneEdit.value;
+                editedContact[0].address = formEdit.addressEdit.value;
+                var noEditedContact = this.state.displayedContacts.filter(e => e.id !== editedContactId);
+                var edit = editedContact.concat(noEditedContact);
+                console.log(edit);
+                form.style.display = 'block';
+                formEdit.style.display = 'none';
+                this.setState({
+                    displayedContacts: edit
+                });
+                },
+            handleSearch: function(event) {
+                var searchQuery = event.target.value.toLowerCase();
+                var displayedContacts = CONTACTS.filter(function(el) {
+                    var searchValue = el.name.toLowerCase();
+                    return searchValue.indexOf(searchQuery) !== -1;
+                });
+                this.setState({
+                    displayedContacts: displayedContacts
+                });
+            },
+
+            render: function() {
+                console.log(this.state)
+                return (
+                    <div className="contacts">
+                    <form id="form"  onChange={this.setNewContact}>
+                        <input type="text" placeholder="Name" name="name" className="search-field" />
+                        <input type="text" placeholder="Phone Number" name="phone" className="search-field" />
+                        <input type="text" placeholder="Address" name="address" className="search-field" />
+                        <input type="button" onClick={this.handleAdd} value="Add new" />
+                    </form>
+                    <form id="formEdit">
+                        <input type="text" placeholder="Name" name="nameEdit" className="search-field" />
+                        <input type="text" placeholder="Phone Number" name="phoneEdit" className="search-field" />
+                        <input type="text" placeholder="Address" name="addressEdit" className="search-field" />
+                        <button onClick={this.handleSave} name='id' type="button"> Save changes </button>
+                    </form>
+                        <input type="text" placeholder="Search..." className="search-field" onChange={this.handleSearch} />
+                        <ul className="contacts-list">
+                            {
+                               this.state.displayedContacts.map((el) => {
+                                   return(
+                                    <li className="contact">
+                                        <img className="contact-image" src={el.image} width="60px" height="60px" />
+                                            <div className="contact-info">
+                                                <div className="contact-name"> {el.name} </div>
+                                                <div className="contact-number"> {el.phoneNumber} </div>
+                                                <div className="contact-number"> {el.address} </div>
+                                            </div>
+                                        <div className="action-contact">
+                                            <button id={el.id} onClick={this.handleDelete}>DELETE</button>
+                                            <button id={el.id} onClick={this.handleEdit}>EDIT</button>
+                                        </div>
+                                    </li>
+                                   )
+                               })
+                            }
+                        </ul>
+                    </div>
+                );
+            }
+        });
+
+        ReactDOM.render(
+            <ContactsList />,
+            document.getElementById("content")
+        );
+
+    </script>
+</body>
+
+</html>
